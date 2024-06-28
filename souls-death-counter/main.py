@@ -4,19 +4,21 @@ from PIL import ImageTk, Image
 
 root = ttk.Window(themename="cyborg")
 root.title("Souls Death Counter")
+root.resizable(width=False, height=False)
+
 
 death_count = ttk.IntVar()
 boss_name = ttk.StringVar()
 name_search = ttk.StringVar()
 
 
-def increase_counter():
+def increase_counter() -> None:
     current_count = death_count.get()
     current_count += 1
     death_count.set(current_count)
 
 
-def decrase_counter():
+def decrase_counter() -> None:
     current_count = death_count.get()
 
     if current_count > 0:
@@ -24,34 +26,61 @@ def decrase_counter():
         death_count.set(current_count)
 
 
-def write_to_json(data):
+def save_new_data(name: str, death_counter: int) -> None:
+    new_data = {name: {"death": death_counter}}
+
     with open("data.json", "r+") as file:
         file_data = json.load(file)
-        file_data["boss"].append(data)
+        file_data["boss"].append(new_data)
         file.seek(0)
-        json.dump(file_data, file)
+        json.dump(file_data, file, indent=4)
 
 
-def read_from_json():
+def update_existing_data(name: str, death_counter: int, key_idx: int) -> None:
+    with open("data.json", "r+") as file:
+        file_data = json.load(file)
+
+        file_data["boss"][key_idx][name]["death"] = death_counter
+        file.seek(0)
+        json.dump(file_data, file, indent=4)
+        file.truncate()
+
+
+def read_from_json() -> dict:
     with open("data.json", "r") as file:
         data = json.load(file)
 
-    return data["boss"]
+    return data
 
 
-def search_name():
+def search_name() -> None:
+    current_name = boss_name.get()
+    current_death_count = death_count.get()
     name = name_search.get()
     boss_data = read_from_json()
 
-    for data in boss_data:
-        for boss in data.keys():
-            if name == boss:
-                change_gui_data(boss, data[boss]["death"])
+    for idx, data in enumerate(boss_data["boss"]):
+        if name in data:
+            change_gui_data(name, data[name]["death"])
+            if current_name in data:
+                update_existing_data(current_name, current_death_count, idx)
+            return
+
+    save_new_data(name, 0)
+    change_gui_data(name, 0)
 
 
-def change_gui_data(name, curr_death_count):
+def change_gui_data(name: str, curr_death_count: int) -> None:
     boss_name.set(name)
     death_count.set(curr_death_count)
+
+
+def on_close() -> None:
+    name = boss_name.get()
+    counter = death_count.get()
+    data = {name: {"death": counter}}
+
+    root.destroy()
 
 
 pane = ttk.Frame(root).grid()
@@ -65,25 +94,26 @@ game_picture = ttk.Label(pane, image=img).grid(
 boss_title = ttk.Label(pane, textvariable=boss_name).grid(
     row=2, column=0, padx=30, pady=10, sticky="ws"
 )
-increment_count = ttk.Button(pane, command=increase_counter).grid(
-    row=2, column=1, padx=30, pady=10, sticky="e"
+increment_count = ttk.Button(pane, text="up", command=increase_counter).grid(
+    row=2, column=1, padx=30, sticky="es"
 )
 counter = ttk.Label(pane, textvariable=death_count, font=("Arial", 40)).grid(
     row=3, column=0, padx=30, sticky="w"
 )
-decrement_count = ttk.Button(pane, command=decrase_counter).grid(
-    row=3, column=1, padx=30, pady=10, sticky="e"
+decrement_count = ttk.Button(pane, text="dw", command=decrase_counter).grid(
+    row=3, column=1, padx=30, sticky="ne"
 )
 boss_search_text = ttk.Label(pane, text="Search:").grid(
     row=4, column=0, padx=30, pady=5, sticky="ws"
 )
 boss_search = ttk.Entry(pane, textvariable=name_search).grid(
-    row=5, column=0, pady=10, padx=30, sticky="nw"
+    row=5, column=0, pady=10, padx=30, sticky="e"
 )
 enter_search = ttk.Button(pane, text="Enter", command=search_name).grid(
-    row=5, column=1, pady=10, padx=30, sticky="ne"
+    row=5, column=1, pady=10, padx=30, sticky="w"
 )
 
-boss_name.set("hello")
+boss_name.set("Boss Name")
 
+root.protocol("WM_DELETE_WINDOW", on_close)
 root.mainloop()
