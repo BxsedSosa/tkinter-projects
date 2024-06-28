@@ -1,29 +1,9 @@
 {
     "boss": [
-        {
-            "Rahdahn": {
-                "death": 15
-            }
-        },
-        {
-            "Name1": {
-                "death": 231
-            }
-        },
-        {
-            "Name2": {
-                "death": 28937
-            }
-        },
-        {
-            "Name3": {
-                "death": 0
-            }
-        }
     ],
     "last_used": {
-        "name": {
-            "death": 423
+        "Welcome": {
+            "death": 0
         }
     }
 }
