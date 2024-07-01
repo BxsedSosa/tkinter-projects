@@ -79,6 +79,7 @@ def search_name() -> None:
         if name in data:
             if current_name in data:
                 update_existing_data(current_name, current_death_count, idx)
+
             change_gui_data(name, data[name]["death"])
             return
 
